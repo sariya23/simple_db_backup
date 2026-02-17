@@ -1,58 +1,30 @@
 # Simple DB Backup
 
-## Описание
+## Description
 
-Simple DB Backup помогает автоматически делать бэкапы Postgres БД, которая запущена в докере. Файл с бэкапом отправляет в ЛС чат телеграмма. 
+Simple DB Backup helps automatically create backups of a Postgres database running in Docker. The backup file is sent to a Telegram private chat.
 
-## Настройка и запуск
+## Setup and запуск
 
-В `.env.example` перечислены переменные, которые нужно заполнить в вашем файле `.env`.
+The `.env.example` file lists the variables that must be filled in your `.env` file.
 
-1) В BotFather создать бота и скопировать API токен в `TOKEN` файла `.env`.
-2) Чтобы узнать свой `CHAT_ID`:
-   - Перейти по ссылке `https://api.telegram.org/bot<BOT_TOKEN>/getUpdates`
-   - Отправить что-то боту
-   - Скопировать `chat.id` в переменную `CHAT_ID`
-3) Значения переменных `CONTAINER_NAME`, `DB_NAME`, `DB_USER`, `BACKUP_DIR` индивидуальны.
+1. Create a bot using BotFather and copy the API token into the `TOKEN` variable in the `.env` file.
+2. To find your `CHAT_ID`:
 
-### Запуск через Docker
+   * Open the link `https://api.telegram.org/bot<BOT_TOKEN>/getUpdates`
+   * Send any message to the bot
+   * Copy `chat.id` into the `CHAT_ID` variable
+3. The values for `CONTAINER_NAME`, `DB_NAME`, `DB_USER`, `BACKUP_DIR`, and `POSTGRES_PORT` are specific to your setup.
 
-Образ доступен на Docker Hub. Контейнеру нужен доступ к Docker-сокету хоста (чтобы выполнять `docker exec` к контейнеру с БД) и к вашему `.env`. Каталог для бэкапов смонтируйте volume и укажите тот же путь в `BACKUP_DIR` в `.env`.
+### Running a backup
 
-**Скачать образ и запустить:**
-```bash
-docker pull sariya10/simple-backup:latest
-docker run --rm \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /путь/к/вашему/.env:/app/.env:ro \
-  -v /путь/к/бэкапам:/backup \
-  USERNAME/simple-backup:latest --env-file /app/.env
+For convenience, you can place the application launch command in a `.sh` script:
+
+```sh
+#!/bin/bash
+
+source /path/to/bin/python/execute
+python /path/to/execute/script --env-file=/path/to/env/file
 ```
 
-В `.env` укажите `BACKUP_DIR=/backup` (или тот путь, который смонтировали вторым `-v`).
-
-Путь к `.env` можно задать любым: смонтируйте файл в контейнер и передайте его в `--env-file`, например:
-```bash
-docker run --rm \
-  -v /var/run/docker.sock:/var/run/docker.sock \
-  -v /home/user/my.env:/config/my.env:ro \
-  -v /data/backups:/backup \
-  USERNAME/simple-backup:latest --env-file /config/my.env
-```
-
-**Cron (запуск по расписанию):**
-```bash
-0 3 * * * docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/.env:/app/.env:ro -v /path/to/backup:/backup USERNAME/simple-backup:latest --env-file /app/.env >> /path/to/backup.log 2>&1
-```
-
-*Альтернатива: собрать образ из исходников — `docker build -t simple-backup .` и в командах выше использовать `simple-backup` вместо `USERNAME/simple-backup:latest`.*
-
-### Запуск без Docker (на хосте)
-
-1) В `run.sh` укажите полные пути до `main.py` и интерпретатора Python.
-2) Сделайте файл исполняемым: `chmod +x /path/to/run.sh`.
-3) При необходимости укажите путь к .env: `python main.py --env-file /path/to/.env`.
-4) Добавьте задачу в cron: `crontab -e` → `0 3 * * * /path/to/run.sh >> /path/to/backup.log 2>&1`.
-
-Готово.
- 
+The env file should be specified so that it is easy to create backups of multiple databases on the same VPS.
