@@ -30,17 +30,20 @@ DB_USER = os.getenv("DB_USER")
 BACKUP_DIR = os.path.expanduser(os.getenv("BACKUP_DIR"))
 BOT_TOKEN = os.getenv("TOKEN")
 CHAT_ID = os.getenv("CHAT_ID")
+POSTGRES_PORT = os.getenv("POSTGRES_PORT")
 
 os.makedirs(BACKUP_DIR, exist_ok=True)
 timestamp = datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
 backup_file = os.path.join(BACKUP_DIR, f"{DB_NAME}_{timestamp}.sql")
 
 
+# В контейнере PATH может не содержать /usr/bin, используем полный путь
+docker_cmd = "/usr/bin/docker" if os.path.exists("/usr/bin/docker") else "docker"
 command = [
-    "docker", "exec", CONTAINER_NAME,
+    docker_cmd, "exec", CONTAINER_NAME,
     "pg_dump",
     "-U", DB_USER,
-    DB_NAME
+    DB_NAME, "-p", POSTGRES_PORT
 ]
 
 try:
