@@ -1,4 +1,4 @@
-
+import argparse
 import subprocess
 import datetime
 import os
@@ -6,7 +6,23 @@ import sys
 from dotenv import load_dotenv
 import requests
 
-load_dotenv()
+
+def parse_args():
+    parser = argparse.ArgumentParser(description="Backup Postgres DB and send to Telegram")
+    parser.add_argument(
+        "--env-file", "-e",
+        default=None,
+        metavar="PATH",
+        help="Path to .env file (default: .env in current directory)",
+    )
+    return parser.parse_args()
+
+
+args = parse_args()
+if args.env_file:
+    load_dotenv(args.env_file)
+else:
+    load_dotenv()
 
 CONTAINER_NAME = os.getenv("CONTAINER_NAME")
 DB_NAME = os.getenv("DB_NAME")

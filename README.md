@@ -8,17 +8,53 @@ Simple DB Backup помогает автоматически делать бэк
 
 В `.env.example` перечислены переменные, которые нужно заполнить в вашем файле `.env`.
 
-
-1) В BotFather создать бота и скопировать API токен в `TOKEN` файла `.env`. 
+1) В BotFather создать бота и скопировать API токен в `TOKEN` файла `.env`.
 2) Чтобы узнать свой `CHAT_ID`:
-    - Перейти по ссылке `https://api.telegram.org/bot<BOT_TOKEN>/getUpdates`
-    - Отправить что-то боту
-    - Скопировать `chat.id` в переменную `CHAT_ID` 
-3) Значения переменных `CONTAINER_NAME`, `DB_NAME`, `DB_USER`, `BACKUP_DIR` индивидуальны
-4) В `run.sh` указать ПОЛНЫЕ пути до исполняемого файла `main.py` и до интерпретатора
-5) Сделать файл исполняемым `chmod +x /path/to/run.sh`
-6) Добавить крон задачу `crontab -e`
-7) В файл вставить `0 3 * * * /path/to/run.sh >> /path/to/backup.log 2>&1`
+   - Перейти по ссылке `https://api.telegram.org/bot<BOT_TOKEN>/getUpdates`
+   - Отправить что-то боту
+   - Скопировать `chat.id` в переменную `CHAT_ID`
+3) Значения переменных `CONTAINER_NAME`, `DB_NAME`, `DB_USER`, `BACKUP_DIR` индивидуальны.
 
-Готово
+### Запуск через Docker
+
+Соберите образ и запускайте скрипт в контейнере. Контейнеру нужен доступ к Docker-сокету хоста (чтобы выполнять `docker exec` к контейнеру с БД) и к вашему `.env`. Путь до каталога для бэкапов смонтируйте в volume и укажите тот же путь в `BACKUP_DIR` в `.env`.
+
+**Сборка образа:**
+```bash
+docker build -t sumple-backup .
+```
+
+**Запуск с указанием пути до .env:**
+```bash
+docker run --rm \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /путь/к/вашему/.env:/app/.env:ro \
+  -v /путь/к/бэкапам:/backup \
+  simple-backup --env-file /app/.env
+```
+
+В `.env` укажите `BACKUP_DIR=/backup` (или тот путь, который смонтировали вторым `-v`).
+
+Путь к `.env` можно задать любым: смонтируйте файл в контейнер и передайте его в `--env-file`, например:
+```bash
+docker run --rm \
+  -v /var/run/docker.sock:/var/run/docker.sock \
+  -v /home/user/my.env:/config/my.env:ro \
+  -v /data/backups:/backup \
+  simple-backup --env-file /config/my.env
+```
+
+**Cron (запуск по расписанию):** добавьте задачу, например на 3:00:
+```bash
+0 3 * * * docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/.env:/app/.env:ro -v /path/to/backup:/backup auth-backup --env-file /app/.env >> /path/to/backup.log 2>&1
+```
+
+### Запуск без Docker (на хосте)
+
+1) В `run.sh` укажите полные пути до `main.py` и интерпретатора Python.
+2) Сделайте файл исполняемым: `chmod +x /path/to/run.sh`.
+3) При необходимости укажите путь к .env: `python main.py --env-file /path/to/.env`.
+4) Добавьте задачу в cron: `crontab -e` → `0 3 * * * /path/to/run.sh >> /path/to/backup.log 2>&1`.
+
+Готово.
  
