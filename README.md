@@ -21,7 +21,7 @@ Simple DB Backup помогает автоматически делать бэк
 
 **Скачать образ и запустить:**
 ```bash
-docker pull USERNAME/simple-backup:latest
+docker pull sariya10/simple-backup:latest
 docker run --rm \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /путь/к/вашему/.env:/app/.env:ro \
