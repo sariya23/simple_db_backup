@@ -17,20 +17,16 @@ Simple DB Backup помогает автоматически делать бэк
 
 ### Запуск через Docker
 
-Соберите образ и запускайте скрипт в контейнере. Контейнеру нужен доступ к Docker-сокету хоста (чтобы выполнять `docker exec` к контейнеру с БД) и к вашему `.env`. Путь до каталога для бэкапов смонтируйте в volume и укажите тот же путь в `BACKUP_DIR` в `.env`.
+Образ доступен на Docker Hub. Контейнеру нужен доступ к Docker-сокету хоста (чтобы выполнять `docker exec` к контейнеру с БД) и к вашему `.env`. Каталог для бэкапов смонтируйте volume и укажите тот же путь в `BACKUP_DIR` в `.env`.
 
-**Сборка образа:**
+**Скачать образ и запустить:**
 ```bash
-docker build -t sumple-backup .
-```
-
-**Запуск с указанием пути до .env:**
-```bash
+docker pull USERNAME/simple-backup:latest
 docker run --rm \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /путь/к/вашему/.env:/app/.env:ro \
   -v /путь/к/бэкапам:/backup \
-  simple-backup --env-file /app/.env
+  USERNAME/simple-backup:latest --env-file /app/.env
 ```
 
 В `.env` укажите `BACKUP_DIR=/backup` (или тот путь, который смонтировали вторым `-v`).
@@ -41,13 +37,15 @@ docker run --rm \
   -v /var/run/docker.sock:/var/run/docker.sock \
   -v /home/user/my.env:/config/my.env:ro \
   -v /data/backups:/backup \
-  simple-backup --env-file /config/my.env
+  USERNAME/simple-backup:latest --env-file /config/my.env
 ```
 
-**Cron (запуск по расписанию):** добавьте задачу, например на 3:00:
+**Cron (запуск по расписанию):**
 ```bash
-0 3 * * * docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/.env:/app/.env:ro -v /path/to/backup:/backup auth-backup --env-file /app/.env >> /path/to/backup.log 2>&1
+0 3 * * * docker run --rm -v /var/run/docker.sock:/var/run/docker.sock -v /path/to/.env:/app/.env:ro -v /path/to/backup:/backup USERNAME/simple-backup:latest --env-file /app/.env >> /path/to/backup.log 2>&1
 ```
+
+*Альтернатива: собрать образ из исходников — `docker build -t simple-backup .` и в командах выше использовать `simple-backup` вместо `USERNAME/simple-backup:latest`.*
 
 ### Запуск без Docker (на хосте)
 
